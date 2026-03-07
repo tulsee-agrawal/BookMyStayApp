@@ -11,7 +11,7 @@ public void initializeTypes() {
         inventory.addRoomType("Double", 15, 3500.0);
         inventory.setAmenities("Double", Arrays.asList("Free Wi-Fi", "AC", "TV", "City View"));
         inventory.addRoomType("Suite",  5, 8000.0);
-        inventory.setAmenities("Suite", Arrays.asList("Free Wi‑Fi", "AC", "Mini Bar", "Bathtub"));
+        inventory.setAmenities("Suite", Arrays.asList("Free Wi-Fi", "AC", "Mini Bar", "Bathtub"));
 
 }
 public void reserve (String type,int count) {
