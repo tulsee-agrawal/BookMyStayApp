@@ -1,38 +1,48 @@
 package com.bookmystay.app;
 /**
- * Use Case 1: Room Inventory Setup & Management
+ * Use Case 2: Room Search & Availability Check
  * 
  * Data Structures:
  * HashMap<String, Integer> – Room type → available count
- * HashMap<String, Double> – Room type → price per night
+ * HashMap<String, Double>  – Room type → price per night
+ * HashMap<String, List<String>> – Room type → amenities
  * 
  * Application:
- *  - Initialized room types (Single, Double, Suite)
- *  - Stores room counts and prices
- *  - Support dynamic inventory updates
- *  - Provide real-time availability status
+ *  - Displays available room types
+ *  - Shows prices and amenities for each room
+ *  - Provides real-time availability (read-only)
+ *  - Prevents booking of unavailable room types
  *  
- * flow:
- * - Add room type
- * - Store in HashMap 
- * - Update count/price
- * - Confirm
+ * Flow:
+ * - Receive search request
+ * - Lookup data from HashMaps
+ * - Filter rooms with availability > 0
+ * - Display availability, price, and amenities
+ * 
+ * Goal:
+ *  - Allow guests to search rooms without modifying inventory
+ *  - Ensure accurate, real-time availability results
  * 
  * @author Tulsee Agrawal
- * @version 1.0
+ * @version 2.0
  */
-import com.bookmystay.model.*;
 import com.bookmystay.service.*;
 
 public class App {
 public static void main(String[] args) {
 	InventoryService inv = new InventoryService();
 	inv.initializeTypes();
-	inv.showInventory();
-	inv.reserve("Single", 10);
-	inv.reserve("Double", 1);
-	inv.showInventory();
-	inv.release("Single", 1);
-	inv.showInventory();
+
+	 // UC-2: read-only search
+	 SearchService search = new SearchService(inv.getInventory());
+
+	 // Before any booking
+	 search.showAvailable();
+	 
+	 inv.reserve("Double", 3);
+
+	 System.out.println("\n--- After booking 3 Doubles ---");
+        search.showAvailable();
+
 }
 }
