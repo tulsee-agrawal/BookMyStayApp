@@ -1,71 +1,69 @@
 package com.bookmystay.app;
 
 /**
- * Use Case 4: Reservation Confirmation & Room Allocation
+ * Use Case 5: Add-On Service Selection
  *
  * Data Structures:
- * Set<String> – Global set of booked room IDs 
- * HashMap<String, Set<String>> – Room type → assigned room IDs
- * HashMap<String, Integer> – Room type → next room number 
+ * Map<Reservation, List<Service>> – reservation → attached services
  *
  * Application:
- *  - Confirms reservation requests
- *  - Assigns unique room IDs (e.g., S-001, D-002, SU-001)
- *  - Prevents reuse of room IDs via a Set
- *  - Updates inventory immediately upon confirmation
+ *  - Attach optional services (breakfast, spa, airport pickup) to a reservation
+ *  - Allow multiple services per booking
+ *  - Calculate total additional cost for billing
  *
  * Flow:
- * - Receive reservation request
- * - Validate request (type, quantity)
- * - Reserve from inventory (decrement availability)
- * - Generate unique room ID(s) for the type
- * - Add ID(s) to global Set and type-wise Map
- * - Return assigned room ID(s) as confirmation
- *
- * Goal:
- *  - Guarantee zero double-booking with unique allocation
- *  - Keep inventory in sync instantly on confirmation
+ * - Select service
+ * - Add to List
+ * - Map to Reservation
  *
  * @author Tulsee Agrawal
- * @version 4.0
+ * @version 5.0
  */
 
 import java.util.*;
 import com.bookmystay.service.*;
 import com.bookmystay.model.*;
 public class App {
-public static void main(String[] args) {
-		InventoryService inv = new InventoryService();
-		inv.initializeTypes();
-		inv.showInventory();
+	    public static void main(String[] args) {
 
-AllocationService alloc = new AllocationService();
+	        InventoryService inv = new InventoryService();
+	        inv.initializeTypes();
 
-Reservation r1 = new Reservation("A", "Double", 2);
-        List<String> ids1 = alloc.confirm(r1, inv);
-        System.out.println("\nCONFIRMED for " + r1.getGuestName() + " -> " + ids1);
+	      
+	        AllocationService alloc = new AllocationService();
 
+	     
+	        Reservation r1 = new Reservation("A", "Double", 2);
+	        Reservation r2 = new Reservation("B", "Suite", 1);
 
-Reservation r2 = new Reservation("B", "Suite", 1);
-        List<String> ids2 = alloc.confirm(r2, inv);
-        System.out.println("CONFIRMED for " + r2.getGuestName() + " -> " + ids2);
-	
+	   
+	        System.out.println("Allocating rooms...");
+	        List<String> rooms1 = alloc.confirm(r1, inv); // updates inventory + assigns IDs
+	        List<String> rooms2 = alloc.confirm(r2, inv);
+	        System.out.println("A rooms: " + rooms1);
+	        System.out.println("B rooms: " + rooms2);
 
-try {
-            Reservation r3 = new Reservation("C", "Suite", 10);
-            alloc.confirm(r3, inv);
-        } catch (Exception ex) {
-            System.out.println("\nREJECTED (as expected) -> " + ex.getMessage());
-        }
+	        // UC-5: Add-on services
+	        ServiceManagement sm = new ServiceManagement();
 
-System.out.println("\n--- Inventory after confirmations ---");
-       inv.showInventory();
+	       
+	        sm.addService(r1, new Service("Breakfast", 500));
+	        sm.addService(r1, new Service("Airport Pickup", 1200));
 
-       // Show per-type assigned list
-       System.out.println("\nAssigned for Double: " + alloc.getAssignedForType("Double"));
-       System.out.println("Assigned for Suite : " + alloc.getAssignedForType("Suite"));
-       System.out.println("All booked IDs     : " + alloc.getAllBookedIds());
-   }
+	        sm.addServices(r2, Arrays.asList(
+	                new Service("Spa", 2000),
+	                new Service("Breakfast", 500)
+	        ));
+
+	        sm.printServices(r1);
+	        sm.printServices(r2);
+
+	        sm.removeService(r1, "Breakfast");
+	        System.out.println("\nAfter removing Breakfast for Aarav:");
+	        sm.printServices(r1);
+
+	        inv.showInventory();
+	    }
 }
 
 
