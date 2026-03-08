@@ -1,69 +1,76 @@
 package com.bookmystay.app;
 
 /**
- * Use Case 5: Add-On Service Selection
+ * Use Case 6: Booking History & Reporting
  *
  * Data Structures:
- * Map<Reservation, List<Service>> – reservation → attached services
+ * List<Reservation> – ordered storage of confirmed/canceled bookings
  *
  * Application:
- *  - Attach optional services (breakfast, spa, airport pickup) to a reservation
- *  - Allow multiple services per booking
- *  - Calculate total additional cost for billing
+ *  - Stores confirmed reservations
+ *  - Supports cancellation and review
+ *  - Generates simple activity reports
  *
  * Flow:
- * - Select service
+ * - Confirm booking
  * - Add to List
- * - Map to Reservation
+ * - Persist (in-memory for now)
+ * - Retrieve when needed
  *
  * @author Tulsee Agrawal
- * @version 5.0
+ * @version 6.0
  */
 
 import java.util.*;
 import com.bookmystay.service.*;
 import com.bookmystay.model.*;
+
 public class App {
-	    public static void main(String[] args) {
+    public static void main(String[] args) {
 
-	        InventoryService inv = new InventoryService();
-	        inv.initializeTypes();
+      
+        InventoryService inv = new InventoryService();
+        inv.initializeTypes();
 
-	      
-	        AllocationService alloc = new AllocationService();
+        
+        AllocationService alloc = new AllocationService();
 
-	     
-	        Reservation r1 = new Reservation("A", "Double", 2);
-	        Reservation r2 = new Reservation("B", "Suite", 1);
+        
+        HistoryService history = new HistoryService();
 
-	   
-	        System.out.println("Allocating rooms...");
-	        List<String> rooms1 = alloc.confirm(r1, inv); // updates inventory + assigns IDs
-	        List<String> rooms2 = alloc.confirm(r2, inv);
-	        System.out.println("A rooms: " + rooms1);
-	        System.out.println("B rooms: " + rooms2);
+     
+        Reservation r1 = new Reservation("A", "Double", 2);
+        Reservation r2 = new Reservation("B", "Suite", 1);
+        Reservation r3 = new Reservation("C",  "Single", 1);
 
-	        // UC-5: Add-on services
-	        ServiceManagement sm = new ServiceManagement();
+        // Confirm r1, r2
+        List<String> rooms1 = alloc.confirm(r1, inv);
+        List<String> rooms2 = alloc.confirm(r2, inv);
+        System.out.println("CONFIRMED r1 -> " + rooms1);
+        System.out.println("CONFIRMED r2 -> " + rooms2);
 
-	       
-	        sm.addService(r1, new Service("Breakfast", 500));
-	        sm.addService(r1, new Service("Airport Pickup", 1200));
+        history.recordConfirmation(r1);
+        history.recordConfirmation(r2);
 
-	        sm.addServices(r2, Arrays.asList(
-	                new Service("Spa", 2000),
-	                new Service("Breakfast", 500)
-	        ));
+      
+        try {
+            List<String> rooms3 = alloc.confirm(r3, inv);
+            System.out.println("CONFIRMED r3 -> " + rooms3);
+            history.recordConfirmation(r3);
 
-	        sm.printServices(r1);
-	        sm.printServices(r2);
+           
+            inv.release("Single", r3.getQuantity());
+            history.recordCancellation(r3);
+            System.out.println("CANCELED r3 and released inventory.");
+        }
+        catch (Exception ex) {
+            System.out.println("r3 FAILED: " + ex.getMessage());
+        }
 
-	        sm.removeService(r1, "Breakfast");
-	        System.out.println("\nAfter removing Breakfast for Aarav:");
-	        sm.printServices(r1);
+        inv.showInventory();
 
-	        inv.showInventory();
-	    }
+        history.printReport();
+    }
 }
 
 
